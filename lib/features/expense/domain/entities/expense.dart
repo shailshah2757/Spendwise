@@ -5,6 +5,7 @@ class Expense {
   final String categoryId;
   final DateTime date;
   final String? notes;
+  final String? receiptPath;
 
   const Expense({
     required this.id,
@@ -13,5 +14,6 @@ class Expense {
     required this.categoryId,
     required this.date,
     this.notes,
+    this.receiptPath,
   });
 }

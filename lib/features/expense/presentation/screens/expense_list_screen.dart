@@ -1,25 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
+import '../../../../core/utils/date_formatter.dart';
+import '../../../category/domain/entities/category.dart';
+import '../../../category/presentation/providers/category_provider.dart';
+import '../../../settings/presentation/providers/settings_provider.dart';
+import '../../domain/entities/expense.dart';
 import '../providers/expense_provider.dart';
-import '../widgets/expense_card.dart';
 
 class ExpenseListScreen extends ConsumerWidget {
   const ExpenseListScreen({super.key});
 
-  // Derives a stable color from categoryId until the category
-  // feature is wired up with a real provider.
-  static Color _colorFor(String categoryId) {
-    final i = categoryId.hashCode.abs() % AppColors.categoryColors.length;
-    return AppColors.categoryColors[i];
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(expenseNotifierProvider);
+    final state = ref.watch(monthlyExpensesProvider);
+    final categoriesState = ref.watch(categoryNotifierProvider);
+    final currencySymbol = ref.watch(currencySymbolProvider);
+
+    final categoryMap = <String, Category>{};
+    categoriesState.whenData((cats) {
+      for (final c in cats) {
+        categoryMap[c.id] = c;
+      }
+    });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Expenses')),
+      appBar: AppBar(title: const Text(AppStrings.expenses)),
       body: state.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
@@ -38,17 +46,105 @@ class ExpenseListScreen extends ConsumerWidget {
                 itemCount: expenses.length,
                 itemBuilder: (context, index) {
                   final expense = expenses[index];
-                  return ExpenseCard(
+                  final cat = categoryMap[expense.categoryId];
+                  return _SlidableExpenseCard(
                     expense: expense,
-                    categoryColor: _colorFor(expense.categoryId),
-                    onTap: () {},
+                    category: cat,
+                    currencySymbol: currencySymbol,
+                    onDelete: () => ref
+                        .read(expenseNotifierProvider.notifier)
+                        .delete(expense.id),
                   );
                 },
               ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        child: const Icon(Icons.add),
+    );
+  }
+}
+
+class _SlidableExpenseCard extends StatelessWidget {
+  final Expense expense;
+  final Category? category;
+  final String currencySymbol;
+  final VoidCallback onDelete;
+
+  const _SlidableExpenseCard({
+    required this.expense,
+    this.category,
+    required this.currencySymbol,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    final color = category != null ? Color(category!.colorValue) : AppColors.primary;
+    final icon = category != null
+        ? IconData(category!.iconCodePoint, fontFamily: 'MaterialIcons')
+        : Icons.receipt_long_outlined;
+
+    return Slidable(
+      endActionPane: ActionPane(
+        motion: const BehindMotion(),
+        children: [
+          SlidableAction(
+            onPressed: (_) => onDelete(),
+            backgroundColor: AppColors.error,
+            foregroundColor: Colors.white,
+            icon: Icons.delete_outline,
+            label: AppStrings.delete,
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ],
+      ),
+      child: Card(
+        child: InkWell(
+          onTap: () {},
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, color: color, size: 22),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        expense.title,
+                        style: tt.titleSmall,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        DateFormatter.formatFull(expense.date),
+                        style: tt.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  DateFormatter.formatCurrency(expense.amount, symbol: currencySymbol),
+                  style: tt.titleSmall?.copyWith(
+                    color: AppColors.expense,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -65,12 +161,30 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.receipt_long_outlined,
-            size: 72,
-            color: Colors.grey.shade300,
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.06),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.10),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.receipt_long_outlined,
+                  size: 40,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Text(
             'No expenses yet',
             style: tt.titleMedium?.copyWith(color: Colors.grey.shade500),

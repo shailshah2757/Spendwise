@@ -42,9 +42,18 @@ class ExpenseCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      DateFormatter.formatFull(expense.date),
-                      style: tt.bodySmall,
+                    Row(
+                      children: [
+                        Text(
+                          DateFormatter.formatFull(expense.date),
+                          style: tt.bodySmall,
+                        ),
+                        if (expense.receiptPath != null) ...[
+                          const SizedBox(width: 6),
+                          Icon(Icons.attach_file,
+                              size: 14, color: Colors.grey.shade400),
+                        ],
+                      ],
                     ),
                   ],
                 ),

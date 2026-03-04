@@ -19,6 +19,8 @@ Future<void> main() async {
   await Future.wait([
     Hive.openBox<ExpenseModel>(HiveBoxes.expenses),
     Hive.openBox<CategoryModel>(HiveBoxes.categories),
+    Hive.openBox(HiveBoxes.settings),
+    Hive.openBox<double>(HiveBoxes.categoryBudgets),
   ]);
 
   runApp(const ExpenseTrackerApp());

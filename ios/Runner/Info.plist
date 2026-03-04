@@ -41,6 +41,12 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSFaceIDUsageDescription</key>
+	<string>We use Face ID to secure your expense data.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>We need camera access to take photos of receipts and bills.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need photo library access to attach receipt images.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

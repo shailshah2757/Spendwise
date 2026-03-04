@@ -11,6 +11,6 @@ class DateFormatter {
   static String formatMonthYear(DateTime date) => _monthYear.format(date);
   static String formatShort(DateTime date) => _shortDate.format(date);
 
-  static String formatCurrency(double amount) =>
-      NumberFormat.currency(symbol: '\$', decimalDigits: 2).format(amount);
+  static String formatCurrency(double amount, {String symbol = '\$'}) =>
+      NumberFormat.currency(symbol: symbol, decimalDigits: 2).format(amount);
 }

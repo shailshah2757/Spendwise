@@ -6,5 +6,6 @@ class GetExpensesByMonth {
 
   GetExpensesByMonth(this.repository);
 
-  Future<List<Expense>> call(int year, int month) async => [];
+  Future<List<Expense>> call(int year, int month) =>
+      repository.getExpensesByMonth(year, month);
 }

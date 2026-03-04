@@ -6,5 +6,5 @@ class AddExpense {
 
   AddExpense(this.repository);
 
-  Future<void> call(Expense expense) async {}
+  Future<void> call(Expense expense) => repository.addExpense(expense);
 }

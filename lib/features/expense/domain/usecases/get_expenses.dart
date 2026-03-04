@@ -6,5 +6,5 @@ class GetExpenses {
 
   GetExpenses(this.repository);
 
-  Future<List<Expense>> call() async => [];
+  Future<List<Expense>> call() => repository.getAllExpenses();
 }

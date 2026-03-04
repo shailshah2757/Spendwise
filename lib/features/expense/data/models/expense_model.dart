@@ -23,6 +23,9 @@ class ExpenseModel extends HiveObject {
   @HiveField(5)
   final String? notes;
 
+  @HiveField(6)
+  final String? receiptPath;
+
   ExpenseModel({
     required this.id,
     required this.title,
@@ -30,6 +33,7 @@ class ExpenseModel extends HiveObject {
     required this.categoryId,
     required this.date,
     this.notes,
+    this.receiptPath,
   });
 
   factory ExpenseModel.fromEntity(Expense expense) => ExpenseModel(
@@ -39,6 +43,7 @@ class ExpenseModel extends HiveObject {
         categoryId: expense.categoryId,
         date: expense.date,
         notes: expense.notes,
+        receiptPath: expense.receiptPath,
       );
 
   Expense toEntity() => Expense(
@@ -48,5 +53,6 @@ class ExpenseModel extends HiveObject {
         categoryId: categoryId,
         date: date,
         notes: notes,
+        receiptPath: receiptPath,
       );
 }
