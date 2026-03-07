@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 
 class PinSetupPage extends ConsumerStatefulWidget {
@@ -62,8 +61,9 @@ class _PinSetupPageState extends ConsumerState<PinSetupPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Set PIN'),
         leading: IconButton(
@@ -89,11 +89,10 @@ class _PinSetupPageState extends ConsumerState<PinSetupPage> {
                   : 'This PIN will be used to lock the app',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey.shade500,
+                color: cs.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 32),
-            // PIN dots
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(4, (i) {
@@ -104,9 +103,9 @@ class _PinSetupPageState extends ConsumerState<PinSetupPage> {
                   margin: const EdgeInsets.symmetric(horizontal: 10),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: filled ? AppColors.primary : Colors.transparent,
+                    color: filled ? cs.primary : Colors.transparent,
                     border: Border.all(
-                      color: filled ? AppColors.primary : Colors.grey.shade300,
+                      color: filled ? cs.primary : cs.outlineVariant,
                       width: 2,
                     ),
                   ),
@@ -118,14 +117,14 @@ class _PinSetupPageState extends ConsumerState<PinSetupPage> {
               Text(
                 _error!,
                 style: TextStyle(
-                  color: Colors.red.shade400,
+                  color: cs.error,
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ],
             const Spacer(),
-            _buildNumberPad(),
+            _buildNumberPad(cs),
             const SizedBox(height: 32),
           ],
         ),
@@ -133,7 +132,7 @@ class _PinSetupPageState extends ConsumerState<PinSetupPage> {
     );
   }
 
-  Widget _buildNumberPad() {
+  Widget _buildNumberPad(ColorScheme cs) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 48),
       child: Column(
@@ -155,16 +154,18 @@ class _PinSetupPageState extends ConsumerState<PinSetupPage> {
                   if (key == 'back') {
                     return _PadKey(
                       onTap: _onBackspace,
-                      child: const Icon(Icons.backspace_outlined, size: 22),
+                      child: Icon(Icons.backspace_outlined,
+                          size: 22, color: cs.onSurface),
                     );
                   }
                   return _PadKey(
                     onTap: () => _onDigit(key),
                     child: Text(
                       key,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w500,
+                        color: cs.onSurface,
                       ),
                     ),
                   );

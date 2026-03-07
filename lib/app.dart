@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'core/constants/app_colors.dart';
 import 'core/constants/app_strings.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_provider.dart';
 import 'features/expense/presentation/screens/add_expense_screen.dart';
 import 'features/expense/presentation/screens/expense_list_screen.dart';
 import 'features/home/presentation/pages/home_screen.dart';
@@ -12,18 +12,20 @@ import 'features/settings/presentation/pages/settings_screen.dart';
 import 'features/settings/presentation/providers/settings_provider.dart';
 import 'features/summary/presentation/pages/summary_page.dart';
 
-class ExpenseTrackerApp extends StatelessWidget {
+class ExpenseTrackerApp extends ConsumerWidget {
   const ExpenseTrackerApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return ProviderScope(
-      child: MaterialApp(
-        title: AppStrings.appName,
-        theme: AppTheme.lightTheme,
-        debugShowCheckedModeBanner: false,
-        home: const SplashScreen(),
-      ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = ref.watch(themeModeProvider);
+
+    return MaterialApp(
+      title: AppStrings.appName,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
+      debugShowCheckedModeBanner: false,
+      home: const SplashScreen(),
     );
   }
 }
@@ -51,6 +53,8 @@ class _MainScaffoldState extends State<MainScaffold> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return SecurityGate(
       child: Scaffold(
         body: IndexedStack(index: _currentIndex, children: _screens),
@@ -64,7 +68,7 @@ class _MainScaffoldState extends State<MainScaffold> {
         bottomNavigationBar: BottomAppBar(
           shape: const CircularNotchedRectangle(),
           notchMargin: 8,
-          color: AppColors.surface,
+          color: cs.surface,
           surfaceTintColor: Colors.transparent,
           elevation: 8,
           child: Row(
@@ -84,7 +88,7 @@ class _MainScaffoldState extends State<MainScaffold> {
                 selected: _currentIndex == 1,
                 onTap: () => _onTabTapped(1),
               ),
-              const SizedBox(width: 48), // FAB notch gap
+              const SizedBox(width: 48),
               _NavBarItem(
                 icon: Icons.pie_chart_outline,
                 selectedIcon: Icons.pie_chart,
@@ -124,7 +128,8 @@ class _NavBarItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? AppColors.primary : Colors.grey.shade500;
+    final cs = Theme.of(context).colorScheme;
+    final color = selected ? cs.primary : cs.onSurfaceVariant;
 
     return Expanded(
       child: GestureDetector(
@@ -154,8 +159,7 @@ class _NavBarItem extends StatelessWidget {
 }
 
 // --- Security Gate ---
-// Wraps the app content and shows the lock screen when returning from background
-// after the configured timeout has elapsed.
+// Locks on cold start and every time app returns from background.
 
 class SecurityGate extends ConsumerStatefulWidget {
   final Widget child;
@@ -167,13 +171,20 @@ class SecurityGate extends ConsumerStatefulWidget {
 
 class _SecurityGateState extends ConsumerState<SecurityGate>
     with WidgetsBindingObserver {
-  DateTime? _pausedAt;
   bool _isLocked = false;
+  bool _didInitialCheck = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final lockEnabled = ref.read(appLockEnabledProvider);
+      if (lockEnabled) {
+        setState(() => _isLocked = true);
+      }
+      _didInitialCheck = true;
+    });
   }
 
   @override
@@ -184,21 +195,13 @@ class _SecurityGateState extends ConsumerState<SecurityGate>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!_didInitialCheck) return;
     final lockEnabled = ref.read(appLockEnabledProvider);
     if (!lockEnabled) return;
 
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.hidden) {
-      _pausedAt = DateTime.now();
-    } else if (state == AppLifecycleState.resumed) {
-      if (_pausedAt != null) {
-        final timeout = ref.read(lockTimeoutProvider);
-        final elapsed = DateTime.now().difference(_pausedAt!).inMinutes;
-        if (elapsed >= timeout) {
-          setState(() => _isLocked = true);
-        }
-        _pausedAt = null;
-      }
+      setState(() => _isLocked = true);
     }
   }
 

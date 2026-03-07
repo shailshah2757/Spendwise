@@ -41,7 +41,3 @@ final appLockTypeProvider = StateProvider<String>((ref) {
   return repo.getAppLockType();
 });
 
-final lockTimeoutProvider = StateProvider<int>((ref) {
-  final repo = ref.read(settingsRepositoryProvider);
-  return repo.getLockTimeoutMinutes();
-});

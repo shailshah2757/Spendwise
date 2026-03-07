@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../providers/security_provider.dart';
 
@@ -80,26 +79,26 @@ class _LockScreenState extends ConsumerState<LockScreen> {
   @override
   Widget build(BuildContext context) {
     final lockType = ref.watch(appLockTypeProvider);
+    final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
             const Spacer(flex: 2),
-            // Lock icon
             Container(
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [AppColors.primary, AppColors.primaryDark],
+                  colors: [cs.primary, cs.primaryContainer],
                 ),
                 borderRadius: BorderRadius.circular(22),
               ),
-              child: const Icon(Icons.lock_outline, color: Colors.white, size: 32),
+              child: const Icon(Icons.lock_outline,
+                  color: Colors.white, size: 32),
             ),
             const SizedBox(height: 24),
             Text(
@@ -114,7 +113,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
               'Unlock to access your expenses',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey.shade500,
+                color: cs.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 32),
@@ -125,20 +124,19 @@ class _LockScreenState extends ConsumerState<LockScreen> {
                 child: CircularProgressIndicator(),
               )
             else if (lockType == 'biometric' && !_authenticating) ...[
-              // Show retry button for biometric
               ElevatedButton.icon(
                 onPressed: _tryBiometric,
                 icon: const Icon(Icons.fingerprint, size: 24),
                 label: const Text('Retry Biometric'),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
               ),
             ] else ...[
-              // PIN dots
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(4, (i) {
@@ -149,9 +147,12 @@ class _LockScreenState extends ConsumerState<LockScreen> {
                     margin: const EdgeInsets.symmetric(horizontal: 10),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: filled ? AppColors.primary : Colors.transparent,
+                      color:
+                          filled ? cs.primary : Colors.transparent,
                       border: Border.all(
-                        color: filled ? AppColors.primary : Colors.grey.shade300,
+                        color: filled
+                            ? cs.primary
+                            : cs.outlineVariant,
                         width: 2,
                       ),
                     ),
@@ -165,7 +166,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
               Text(
                 _error!,
                 style: TextStyle(
-                  color: Colors.red.shade400,
+                  color: cs.error,
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
                 ),
@@ -174,8 +175,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
 
             const Spacer(),
 
-            // Number pad (only for PIN)
-            if (lockType == 'pin') _buildNumberPad(),
+            if (lockType == 'pin') _buildNumberPad(cs),
             const SizedBox(height: 32),
           ],
         ),
@@ -183,7 +183,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
     );
   }
 
-  Widget _buildNumberPad() {
+  Widget _buildNumberPad(ColorScheme cs) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 48),
       child: Column(
@@ -205,16 +205,18 @@ class _LockScreenState extends ConsumerState<LockScreen> {
                   if (key == 'back') {
                     return _PadKey(
                       onTap: _onBackspace,
-                      child: const Icon(Icons.backspace_outlined, size: 22),
+                      child: Icon(Icons.backspace_outlined,
+                          size: 22, color: cs.onSurface),
                     );
                   }
                   return _PadKey(
                     onTap: () => _onDigit(key),
                     child: Text(
                       key,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w500,
+                        color: cs.onSurface,
                       ),
                     ),
                   );
@@ -231,7 +233,7 @@ class _PadKey extends StatelessWidget {
   final Widget child;
   final VoidCallback onTap;
 
-  const _PadKey({required this.child, required this.onTap});
+  const _PadKey({required this.onTap, required this.child});
 
   @override
   Widget build(BuildContext context) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'app.dart';
 import 'core/constants/hive_boxes.dart';
@@ -23,5 +24,5 @@ Future<void> main() async {
     Hive.openBox<double>(HiveBoxes.categoryBudgets),
   ]);
 
-  runApp(const ExpenseTrackerApp());
+  runApp(const ProviderScope(child: ExpenseTrackerApp()));
 }
