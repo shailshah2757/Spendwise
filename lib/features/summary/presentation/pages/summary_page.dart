@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/utils/date_formatter.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
@@ -48,6 +47,7 @@ class _MonthSelector extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final cs = Theme.of(context).colorScheme;
     final now = DateTime.now();
     final isCurrentMonth =
         selected.year == now.year && selected.month == now.month;
@@ -56,7 +56,7 @@ class _MonthSelector extends ConsumerWidget {
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.surfaceVariant,
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
@@ -74,9 +74,10 @@ class _MonthSelector extends ConsumerWidget {
             child: Center(
               child: Text(
                 DateFormatter.formatMonthYear(selected),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
+                  color: cs.onSurface,
                 ),
               ),
             ),
@@ -112,19 +113,21 @@ class _MonthNavButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return GestureDetector(
       onTap: enabled ? onTap : null,
       child: Container(
         width: 36,
         height: 36,
         decoration: BoxDecoration(
-          color: enabled ? AppColors.surface : Colors.transparent,
+          color: enabled ? cs.surface : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Icon(
           icon,
           size: 22,
-          color: enabled ? Colors.black87 : Colors.grey.shade300,
+          color: enabled ? cs.onSurface : cs.onSurfaceVariant.withValues(alpha: 0.4),
         ),
       ),
     );
@@ -139,6 +142,7 @@ class _EmptyAnalytics extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
 
     return Center(
       child: Padding(
@@ -150,7 +154,7 @@ class _EmptyAnalytics extends StatelessWidget {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.06),
+                color: cs.primary.withValues(alpha: 0.06),
                 shape: BoxShape.circle,
               ),
               child: Center(
@@ -158,13 +162,13 @@ class _EmptyAnalytics extends StatelessWidget {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.10),
+                    color: cs.primary.withValues(alpha: 0.10),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.pie_chart_outline_rounded,
                     size: 40,
-                    color: AppColors.primary,
+                    color: cs.primary,
                   ),
                 ),
               ),
@@ -173,7 +177,7 @@ class _EmptyAnalytics extends StatelessWidget {
             Text(
               'No spending data',
               style: tt.titleMedium?.copyWith(
-                color: Colors.grey.shade600,
+                color: cs.onSurfaceVariant,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -182,7 +186,7 @@ class _EmptyAnalytics extends StatelessWidget {
               'Add some expenses to see your\nspending breakdown here',
               textAlign: TextAlign.center,
               style: tt.bodySmall?.copyWith(
-                color: Colors.grey.shade400,
+                color: cs.onSurfaceVariant.withValues(alpha: 0.7),
                 height: 1.5,
               ),
             ),
@@ -207,6 +211,7 @@ class _AnalyticsContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
@@ -219,16 +224,16 @@ class _AnalyticsContent extends StatelessWidget {
               children: [
                 Text(
                   'Total Spent',
-                  style: tt.bodySmall?.copyWith(color: Colors.grey.shade500),
+                  style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   DateFormatter.formatCurrency(summary.totalAmount,
                       symbol: currencySymbol),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.w700,
-                    color: Colors.black87,
+                    color: cs.onSurface,
                   ),
                 ),
               ],
@@ -241,7 +246,7 @@ class _AnalyticsContent extends StatelessWidget {
             margin: EdgeInsets.zero,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
-              side: const BorderSide(color: AppColors.outlineVariant),
+              side: BorderSide(color: cs.outlineVariant),
             ),
             child: Padding(
               padding: const EdgeInsets.all(20),
@@ -276,7 +281,7 @@ class _AnalyticsContent extends StatelessWidget {
                           Text(
                             '${cat.categoryName} ${pct.toStringAsFixed(0)}%',
                             style: tt.bodySmall?.copyWith(
-                              color: Colors.grey.shade600,
+                              color: cs.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -329,6 +334,7 @@ class _CategoryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -377,7 +383,7 @@ class _CategoryRow extends StatelessWidget {
                             child: LinearProgressIndicator(
                               value: percentage,
                               minHeight: 6,
-                              backgroundColor: AppColors.surfaceVariant,
+                              backgroundColor: cs.surfaceContainerHighest,
                               valueColor: AlwaysStoppedAnimation(color),
                             ),
                           ),
@@ -388,7 +394,7 @@ class _CategoryRow extends StatelessWidget {
                           child: Text(
                             '${(percentage * 100).toStringAsFixed(0)}%',
                             style: tt.bodySmall?.copyWith(
-                              color: Colors.grey.shade500,
+                              color: cs.onSurfaceVariant,
                               fontWeight: FontWeight.w600,
                             ),
                             textAlign: TextAlign.end,

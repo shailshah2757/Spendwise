@@ -22,6 +22,7 @@ class CategoryBudgetPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final cs = Theme.of(context).colorScheme;
     final categoriesState = ref.watch(categoryNotifierProvider);
     final budgets = ref.watch(categoryBudgetsProvider);
     final currencySymbol = ref.watch(currencySymbolProvider);
@@ -48,7 +49,7 @@ class CategoryBudgetPage extends ConsumerWidget {
                 margin: const EdgeInsets.only(bottom: 8),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
-                  side: const BorderSide(color: AppColors.outlineVariant),
+                  side: BorderSide(color: cs.outlineVariant),
                 ),
                 child: ListTile(
                   contentPadding:
@@ -64,9 +65,10 @@ class CategoryBudgetPage extends ConsumerWidget {
                   ),
                   title: Text(
                     cat.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w500,
                       fontSize: 14,
+                      color: cs.onSurface,
                     ),
                   ),
                   subtitle: Text(
@@ -78,10 +80,11 @@ class CategoryBudgetPage extends ConsumerWidget {
                       fontSize: 12,
                       color: budget > 0
                           ? AppColors.primary
-                          : Colors.grey.shade400,
+                          : cs.onSurfaceVariant,
                     ),
                   ),
-                  trailing: const Icon(Icons.chevron_right, size: 20),
+                  trailing: Icon(Icons.chevron_right,
+                      size: 20, color: cs.onSurfaceVariant),
                   onTap: () =>
                       _showBudgetDialog(context, ref, cat.id, cat.name, budget),
                 ),

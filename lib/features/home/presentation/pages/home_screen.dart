@@ -16,6 +16,7 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tt = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
     final expensesState = ref.watch(monthlyExpensesProvider);
     final categoriesState = ref.watch(categoryNotifierProvider);
     final currencySymbol = ref.watch(currencySymbolProvider);
@@ -41,8 +42,8 @@ class HomeScreen extends ConsumerWidget {
             title: Row(
               children: [
                 Container(
-                  width: 42,
-                  height: 42,
+                  width: 44,
+                  height: 44,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       begin: Alignment.topLeft,
@@ -54,7 +55,7 @@ class HomeScreen extends ConsumerWidget {
                   child: Center(
                     child: Text(
                       _greetingEmoji(),
-                      style: const TextStyle(fontSize: 20),
+                      style: const TextStyle(fontSize: 22),
                     ),
                   ),
                 ),
@@ -69,18 +70,38 @@ class HomeScreen extends ConsumerWidget {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      const SizedBox(height: 1),
-                      Text(
-                        DateFormat('EEEE, dd MMM').format(DateTime.now()),
-                        style: tt.bodySmall?.copyWith(
-                          color: Colors.grey.shade500,
-                        ),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today_rounded,
+                            size: 12,
+                            color: cs.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            DateFormat('EEEE, dd MMM').format(DateTime.now()),
+                            style: tt.bodySmall?.copyWith(
+                              color: cs.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
               ],
             ),
+            actions: [
+              IconButton(
+                onPressed: () {},
+                icon: Icon(
+                  Icons.notifications_none_rounded,
+                  color: cs.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(width: 4),
+            ],
           ),
 
           SliverPadding(
@@ -152,8 +173,6 @@ class _BudgetHeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tt = Theme.of(context).textTheme;
-
     double totalSpent = 0;
     expensesState.whenData((expenses) {
       for (final e in expenses) {
@@ -183,8 +202,9 @@ class _BudgetHeroCard extends StatelessWidget {
             children: [
               Text(
                 'This Month',
-                style: tt.bodySmall?.copyWith(
+                style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.7),
+                  fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -318,6 +338,8 @@ class _CategorySpendingSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return expensesState.when(
       loading: () => const SizedBox(
         height: 80,
@@ -342,7 +364,7 @@ class _CategorySpendingSection extends StatelessWidget {
           margin: EdgeInsets.zero,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
-            side: const BorderSide(color: AppColors.outlineVariant),
+            side: BorderSide(color: cs.outlineVariant),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -361,7 +383,6 @@ class _CategorySpendingSection extends StatelessWidget {
                 final hasBudget = catBudget > 0;
                 final isOverBudget = hasBudget && entry.value > catBudget;
 
-                // If budget exists, progress is spent/budget; otherwise relative to max
                 final progress = hasBudget
                     ? (entry.value / catBudget).clamp(0.0, 1.0)
                     : (entry.value / sorted.first.value);
@@ -393,9 +414,10 @@ class _CategorySpendingSection extends StatelessWidget {
                                 Flexible(
                                   child: Text(
                                     name,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w500,
+                                      color: cs.onSurface,
                                     ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -409,7 +431,7 @@ class _CategorySpendingSection extends StatelessWidget {
                                     fontWeight: FontWeight.w600,
                                     color: isOverBudget
                                         ? Colors.red.shade400
-                                        : null,
+                                        : cs.onSurfaceVariant,
                                   ),
                                 ),
                               ],
@@ -420,7 +442,7 @@ class _CategorySpendingSection extends StatelessWidget {
                               child: LinearProgressIndicator(
                                 value: progress,
                                 minHeight: 5,
-                                backgroundColor: AppColors.surfaceVariant,
+                                backgroundColor: cs.surfaceContainerHighest,
                                 valueColor: AlwaysStoppedAnimation(barColor),
                               ),
                             ),
@@ -455,6 +477,7 @@ class _RecentExpensesSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
 
     return expensesState.when(
       loading: () => const SizedBox(
@@ -472,7 +495,7 @@ class _RecentExpensesSection extends StatelessWidget {
           margin: EdgeInsets.zero,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
-            side: const BorderSide(color: AppColors.outlineVariant),
+            side: BorderSide(color: cs.outlineVariant),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
@@ -539,7 +562,7 @@ class _RecentExpensesSection extends StatelessWidget {
                         height: 1,
                         indent: 68,
                         endIndent: 16,
-                        color: AppColors.outlineVariant.withValues(alpha: 0.6),
+                        color: cs.outlineVariant.withValues(alpha: 0.6),
                       ),
                   ],
                 );
@@ -560,12 +583,13 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Text(
       title,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w600,
-        color: Colors.black87,
+        color: cs.onSurface,
       ),
     );
   }
@@ -577,18 +601,19 @@ class _EmptySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 32),
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.surfaceVariant.withValues(alpha: 0.4),
+        color: cs.surfaceContainerHighest.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Center(
         child: Text(
           message,
           style: TextStyle(
-            color: Colors.grey.shade400,
+            color: cs.onSurfaceVariant,
             fontSize: 14,
           ),
         ),

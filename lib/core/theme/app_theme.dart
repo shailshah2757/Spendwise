@@ -10,7 +10,9 @@ class AppTheme {
   static const double radiusMd = 16;
   static const double radiusLg = 24;
 
-  static ThemeData get lightTheme {
+  static final ThemeData lightTheme = _buildLightTheme();
+
+  static ThemeData _buildLightTheme() {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: AppColors.primary,
       brightness: Brightness.light,
@@ -19,6 +21,7 @@ class AppTheme {
       secondary: AppColors.secondary,
       surface: AppColors.surface,
       surfaceContainerHighest: AppColors.surfaceVariant,
+      outlineVariant: AppColors.outlineVariant,
       error: AppColors.error,
     );
 
@@ -32,11 +35,12 @@ class AppTheme {
         backgroundColor: AppColors.surface,
         foregroundColor: colorScheme.onSurface,
         elevation: 0,
-        scrolledUnderElevation: 1,
-        shadowColor: AppColors.outlineVariant,
+        scrolledUnderElevation: 0,
+        shadowColor: Colors.transparent,
         centerTitle: true,
         surfaceTintColor: Colors.transparent,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
+        toolbarHeight: 56,
         titleTextStyle: TextStyle(
           color: colorScheme.onSurface,
           fontSize: 18,
@@ -284,7 +288,9 @@ class AppTheme {
   //  DARK THEME
   // ════════════════════════════════════════════════════════════════════════
 
-  static ThemeData get darkTheme {
+  static final ThemeData darkTheme = _buildDarkTheme();
+
+  static ThemeData _buildDarkTheme() {
     const darkBg = Color(0xFF1A1C1E);
     const darkSurface = Color(0xFF222528);
     const darkSurfaceVariant = Color(0xFF2C2F33);
@@ -298,6 +304,7 @@ class AppTheme {
       secondary: AppColors.secondary,
       surface: darkSurface,
       surfaceContainerHighest: darkSurfaceVariant,
+      outlineVariant: darkOutline,
       error: const Color(0xFFFFB4AB),
     );
 
@@ -310,11 +317,12 @@ class AppTheme {
         backgroundColor: darkSurface,
         foregroundColor: Colors.white,
         elevation: 0,
-        scrolledUnderElevation: 1,
-        shadowColor: darkOutline,
+        scrolledUnderElevation: 0,
+        shadowColor: Colors.transparent,
         centerTitle: true,
         surfaceTintColor: Colors.transparent,
         systemOverlayStyle: SystemUiOverlayStyle.light,
+        toolbarHeight: 56,
         titleTextStyle: TextStyle(
           color: Colors.white,
           fontSize: 18,

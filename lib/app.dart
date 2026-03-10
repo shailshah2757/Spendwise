@@ -17,13 +17,13 @@ class ExpenseTrackerApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = ref.watch(themeModeProvider);
+    final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp(
       title: AppStrings.appName,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
+      themeMode: resolveThemeMode(themeMode),
       debugShowCheckedModeBanner: false,
       home: const SplashScreen(),
     );

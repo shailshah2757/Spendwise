@@ -7,3 +7,7 @@ final biometricAvailableProvider = FutureProvider<bool>((ref) async {
   final auth = ref.read(authServiceProvider);
   return auth.isBiometricAvailable();
 });
+
+/// Pre-resolved biometric availability for synchronous access.
+/// Defaults to false while loading.
+final biometricResolvedProvider = StateProvider<bool>((ref) => false);

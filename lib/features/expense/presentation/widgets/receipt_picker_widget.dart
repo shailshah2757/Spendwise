@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/receipt_helper.dart';
 
 class ReceiptPickerWidget extends StatelessWidget {
@@ -33,24 +32,26 @@ class _AttachButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return GestureDetector(
       onTap: () => _showOptions(context),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
           border: Border.all(
-            color: AppColors.outlineVariant,
+            color: cs.outlineVariant,
             style: BorderStyle.solid,
           ),
           borderRadius: BorderRadius.circular(16),
-          color: AppColors.surfaceVariant.withValues(alpha: 0.3),
+          color: cs.surfaceContainerHighest.withValues(alpha: 0.3),
         ),
         child: Column(
           children: [
             Icon(
               Icons.cloud_upload_outlined,
               size: 32,
-              color: Colors.grey.shade400,
+              color: cs.onSurfaceVariant,
             ),
             const SizedBox(height: 8),
             Text(
@@ -58,7 +59,7 @@ class _AttachButton extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
-                color: Colors.grey.shade500,
+                color: cs.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 2),
@@ -66,7 +67,7 @@ class _AttachButton extends StatelessWidget {
               'Photo or PDF',
               style: TextStyle(
                 fontSize: 11,
-                color: Colors.grey.shade400,
+                color: cs.onSurfaceVariant.withValues(alpha: 0.6),
               ),
             ),
           ],
@@ -76,6 +77,8 @@ class _AttachButton extends StatelessWidget {
   }
 
   void _showOptions(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -92,7 +95,7 @@ class _AttachButton extends StatelessWidget {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: cs.onSurfaceVariant.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -145,8 +148,9 @@ class _OptionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return ListTile(
-      leading: Icon(icon, color: AppColors.primary),
+      leading: Icon(icon, color: cs.primary),
       title: Text(label),
       onTap: onTap,
     );
@@ -161,12 +165,13 @@ class _ReceiptPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final isPdf = path.toLowerCase().endsWith('.pdf');
 
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        border: Border.all(color: AppColors.outlineVariant),
+        border: Border.all(color: cs.outlineVariant),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -187,7 +192,7 @@ class _ReceiptPreview extends StatelessWidget {
                       File(path),
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => Container(
-                        color: Colors.grey.shade100,
+                        color: cs.surfaceContainerHighest,
                         child: const Icon(Icons.broken_image_outlined),
                       ),
                     ),
@@ -200,9 +205,10 @@ class _ReceiptPreview extends StatelessWidget {
               children: [
                 Text(
                   isPdf ? 'PDF Document' : 'Receipt Photo',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
+                    color: cs.onSurface,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -210,7 +216,7 @@ class _ReceiptPreview extends StatelessWidget {
                   'Attached',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey.shade500,
+                    color: cs.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -218,7 +224,7 @@ class _ReceiptPreview extends StatelessWidget {
           ),
           IconButton(
             onPressed: onRemove,
-            icon: Icon(Icons.close, size: 20, color: Colors.grey.shade400),
+            icon: Icon(Icons.close, size: 20, color: cs.onSurfaceVariant),
             visualDensity: VisualDensity.compact,
           ),
         ],

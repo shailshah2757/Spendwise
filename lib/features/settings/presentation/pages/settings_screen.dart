@@ -1,10 +1,6 @@
-import 'dart:typed_data';
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_strings.dart';
-import '../../../../core/constants/currencies.dart';
 import '../../../../core/theme/theme_provider.dart';
 import '../../../category/presentation/pages/category_page.dart';
 import '../../../security/presentation/pages/pin_setup_page.dart';
@@ -20,82 +16,25 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  final GlobalKey _themeToggleKey = GlobalKey();
-  final GlobalKey _repaintKey = GlobalKey();
-  OverlayEntry? _overlayEntry;
-
-  Future<void> _toggleTheme() async {
-    final isDark = ref.read(themeModeProvider);
-    final newIsDark = !isDark;
-
-    // Get toggle button position for circular reveal origin
-    final renderBox =
-        _themeToggleKey.currentContext?.findRenderObject() as RenderBox?;
-    if (renderBox == null) {
-      await setThemeMode(ref.read(themeModeProvider.notifier), newIsDark);
-      return;
-    }
-
-    final position = renderBox.localToGlobal(
-      Offset(renderBox.size.width / 2, renderBox.size.height / 2),
-    );
-
-    // Capture current screen as image
-    final boundary = _repaintKey.currentContext?.findRenderObject()
-        as RenderRepaintBoundary?;
-    if (boundary == null) {
-      await setThemeMode(ref.read(themeModeProvider.notifier), newIsDark);
-      return;
-    }
-
-    final image = await boundary.toImage(pixelRatio: 1.5);
-    final byteData = await image.toByteData(format: ImageByteFormat.png);
-    image.dispose();
-    if (byteData == null) {
-      await setThemeMode(ref.read(themeModeProvider.notifier), newIsDark);
-      return;
-    }
-    final pngBytes = byteData.buffer.asUint8List();
-
-    // Switch theme immediately
-    await setThemeMode(ref.read(themeModeProvider.notifier), newIsDark);
-
-    // Show overlay with old screenshot + circular reveal punching through it
-    if (!mounted) return;
-    final overlay = Overlay.of(context);
-    _overlayEntry = OverlayEntry(
-      builder: (_) => _CircularRevealTransition(
-        screenshot: pngBytes,
-        center: position,
-        onComplete: () {
-          _overlayEntry?.remove();
-          _overlayEntry = null;
-        },
-      ),
-    );
-    overlay.insert(_overlayEntry!);
-  }
-
-  @override
-  void dispose() {
-    _overlayEntry?.remove();
-    super.dispose();
+  void _switchTheme(String newMode) {
+    final current = ref.read(themeModeProvider);
+    if (current == newMode) return;
+    setThemeMode(ref.read(themeModeProvider.notifier), newMode);
   }
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final currencyCode = ref.watch(currencyCodeProvider);
     final budget = ref.watch(monthlyBudgetProvider);
     final currencySymbol = ref.watch(currencySymbolProvider);
     final appLockEnabled = ref.watch(appLockEnabledProvider);
     final appLockType = ref.watch(appLockTypeProvider);
+    final themeMode = ref.watch(themeModeProvider);
+    // Eagerly resolve biometric availability so it's ready for dialogs
     final biometricAsync = ref.watch(biometricAvailableProvider);
-    final isDark = ref.watch(themeModeProvider);
+    final biometricAvailable = biometricAsync.valueOrNull ?? false;
 
-    return RepaintBoundary(
-      key: _repaintKey,
-      child: Scaffold(
+    return Scaffold(
         appBar: AppBar(title: const Text(AppStrings.settings)),
         body: ListView(
           padding: const EdgeInsets.symmetric(vertical: 8),
@@ -105,56 +44,70 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             _SettingsCard(
               cs: cs,
               children: [
-                _SettingsTile(
-                  cs: cs,
-                  icon: isDark ? Icons.dark_mode : Icons.light_mode,
-                  iconColor:
-                      isDark ? Colors.indigo.shade300 : Colors.amber.shade600,
-                  title: 'Theme',
-                  subtitle: isDark ? 'Dark mode' : 'Light mode',
-                  trailing: GestureDetector(
-                    key: _themeToggleKey,
-                    onTap: _toggleTheme,
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      width: 56,
-                      height: 30,
-                      padding: const EdgeInsets.all(3),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(15),
-                        color: isDark
-                            ? cs.primary
-                            : cs.surfaceContainerHighest,
-                      ),
-                      child: AnimatedAlign(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                        alignment: isDark
-                            ? Alignment.centerRight
-                            : Alignment.centerLeft,
-                        child: Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: isDark ? Colors.white : cs.primary,
-                          ),
-                          child: Icon(
-                            isDark ? Icons.dark_mode : Icons.light_mode,
-                            size: 14,
-                            color: isDark ? cs.primary : Colors.white,
-                          ),
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: cs.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          themeMode == 'dark'
+                              ? Icons.dark_mode
+                              : themeMode == 'light'
+                                  ? Icons.light_mode
+                                  : Icons.brightness_auto,
+                          color: cs.primary,
+                          size: 20,
                         ),
                       ),
-                    ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Theme',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: cs.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              themeMode == 'dark'
+                                  ? 'Dark mode'
+                                  : themeMode == 'light'
+                                      ? 'Light mode'
+                                      : 'System default',
+                              style: TextStyle(
+                                  fontSize: 12, color: cs.onSurfaceVariant),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  onTap: _toggleTheme,
+                ),
+                Padding(
+                  padding:
+                      const EdgeInsets.only(left: 16, right: 16, bottom: 14),
+                  child: _ThemeSegmentedControl(
+                    currentMode: themeMode,
+                    onChanged: _switchTheme,
+                  ),
                 ),
               ],
             ),
 
-            // --- Budget & Currency Section ---
-            _SectionLabel(label: 'BUDGET & CURRENCY', cs: cs),
+            // --- Budget Section ---
+            _SectionLabel(label: 'BUDGET', cs: cs),
             _SettingsCard(
               cs: cs,
               children: [
@@ -167,15 +120,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ? '$currencySymbol ${budget.toStringAsFixed(0)}'
                       : 'Not set',
                   onTap: () => _showBudgetDialog(context, ref, budget),
-                ),
-                _TileDivider(cs: cs),
-                _SettingsTile(
-                  cs: cs,
-                  icon: Icons.currency_exchange,
-                  iconColor: Colors.orange.shade600,
-                  title: AppStrings.currency,
-                  subtitle: currencyCode,
-                  onTap: () => _showCurrencyPicker(context, ref),
                 ),
                 _TileDivider(cs: cs),
                 _SettingsTile(
@@ -227,10 +171,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     value: appLockEnabled,
                     activeTrackColor: cs.primary,
                     onChanged: (val) =>
-                        _handleAppLockToggle(context, ref, val, appLockType),
+                        _handleAppLockToggle(context, ref, val, biometricAvailable),
                   ),
-                  onTap: () => _handleAppLockToggle(
-                      context, ref, !appLockEnabled, appLockType),
+                  onTap: () =>
+                      _handleAppLockToggle(context, ref, !appLockEnabled, biometricAvailable),
                 ),
                 if (appLockEnabled) ...[
                   _TileDivider(cs: cs),
@@ -241,8 +185,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     title: 'Lock Method',
                     subtitle:
                         appLockType == 'biometric' ? 'Biometric' : 'PIN',
-                    onTap: () => _showLockMethodPicker(
-                        context, ref, biometricAsync),
+                    onTap: () => _showLockMethodPicker(context, ref, biometricAvailable),
                   ),
                 ],
               ],
@@ -266,61 +209,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             const SizedBox(height: 32),
           ],
         ),
-      ),
     );
   }
 
-  void _showCurrencyPicker(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 40,
-            height: 4,
-            margin: const EdgeInsets.only(top: 12, bottom: 8),
-            decoration: BoxDecoration(
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurfaceVariant
-                  .withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: supportedCurrencies.length,
-              itemBuilder: (ctx, i) {
-                final c = supportedCurrencies[i];
-                final selected = ref.read(currencyCodeProvider) == c.code;
-                return ListTile(
-                  leading:
-                      Text(c.symbol, style: const TextStyle(fontSize: 20)),
-                  title: Text(c.name),
-                  subtitle: Text(c.code),
-                  trailing: selected
-                      ? Icon(Icons.check_circle,
-                          color: Theme.of(ctx).colorScheme.primary)
-                      : null,
-                  onTap: () async {
-                    final repo = ref.read(settingsRepositoryProvider);
-                    await repo.setCurrency(c.code, c.symbol);
-                    ref.read(currencySymbolProvider.notifier).state = c.symbol;
-                    ref.read(currencyCodeProvider.notifier).state = c.code;
-                    if (ctx.mounted) Navigator.of(ctx).pop();
-                  },
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _showBudgetDialog(
       BuildContext context, WidgetRef ref, double current) {
@@ -365,13 +256,87 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     BuildContext context,
     WidgetRef ref,
     bool enable,
-    String currentType,
+    bool biometricAvailable,
   ) async {
     if (enable) {
-      final result = await Navigator.of(context).push<bool>(
-        MaterialPageRoute(builder: (_) => const PinSetupPage()),
+      if (!context.mounted) return;
+      final cs = Theme.of(context).colorScheme;
+
+      final method = await showModalBottomSheet<String>(
+        context: context,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        builder: (ctx) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: cs.onSurfaceVariant.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 20, vertical: 8),
+                  child: Text(
+                    'Choose Lock Method',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: cs.onSurface,
+                    ),
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.dialpad),
+                  title: const Text('PIN'),
+                  subtitle:
+                      const Text('Set a 4-digit PIN to lock the app'),
+                  onTap: () => Navigator.of(ctx).pop('pin'),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.fingerprint),
+                  title: const Text('Biometric'),
+                  subtitle: biometricAvailable
+                      ? const Text('Use fingerprint or face to unlock')
+                      : Text(
+                          'Not available on this device',
+                          style: TextStyle(color: Colors.red.shade400),
+                        ),
+                  enabled: biometricAvailable,
+                  onTap: biometricAvailable
+                      ? () => Navigator.of(ctx).pop('biometric')
+                      : null,
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        ),
       );
-      if (result != true) return;
+
+      if (method == null) return;
+
+      if (method == 'pin') {
+        if (!context.mounted) return;
+        final result = await Navigator.of(context).push<bool>(
+          MaterialPageRoute(builder: (_) => const PinSetupPage()),
+        );
+        if (result != true) return;
+      } else if (method == 'biometric') {
+        final repo = ref.read(settingsRepositoryProvider);
+        await repo.setAppLockType('biometric');
+        await repo.setAppLockEnabled(true);
+        ref.read(appLockEnabledProvider.notifier).state = true;
+        ref.read(appLockTypeProvider.notifier).state = 'biometric';
+      }
     } else {
       final repo = ref.read(settingsRepositoryProvider);
       await repo.setAppLockEnabled(false);
@@ -379,12 +344,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
-  void _showLockMethodPicker(
-    BuildContext context,
-    WidgetRef ref,
-    AsyncValue<bool> biometricAsync,
-  ) {
-    final biometricAvailable = biometricAsync.valueOrNull ?? false;
+  void _showLockMethodPicker(BuildContext context, WidgetRef ref, bool biometricAvailable) {
     final cs = Theme.of(context).colorScheme;
 
     showModalBottomSheet(
@@ -459,125 +419,185 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   void _showAbout(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    showAboutDialog(
+
+    showDialog(
       context: context,
-      applicationName: AppStrings.appName,
-      applicationVersion: 'v1.0.0',
-      applicationIcon: Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [cs.primary, cs.primaryContainer],
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [cs.primary, cs.primaryContainer],
+                ),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: const Icon(
+                Icons.account_balance_wallet,
+                color: Colors.white,
+                size: 30,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              AppStrings.appName,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: cs.onSurface,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'v1.0.0',
+              style: TextStyle(
+                fontSize: 13,
+                color: cs.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'A simple and beautiful expense tracker to help you manage your daily finances. '
+              'Track spending, set budgets, view analytics, and stay on top of your money.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                height: 1.5,
+                color: cs.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Built with Flutter',
+              style: TextStyle(
+                fontSize: 12,
+                color: cs.onSurfaceVariant.withValues(alpha: 0.6),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          Center(
+            child: TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Close'),
+            ),
           ),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: const Icon(
-          Icons.account_balance_wallet,
-          color: Colors.white,
-          size: 24,
-        ),
+        ],
       ),
-      children: [
-        const Text(
-          'A simple and beautiful expense tracker to help you manage your finances.',
-        ),
-      ],
     );
   }
 }
 
-// --- Circular Reveal Transition ---
+// --- Theme Segmented Control ---
 
-class _CircularRevealTransition extends StatefulWidget {
-  final Uint8List screenshot;
-  final Offset center;
-  final VoidCallback onComplete;
+class _ThemeSegmentedControl extends StatelessWidget {
+  final String currentMode;
+  final ValueChanged<String> onChanged;
 
-  const _CircularRevealTransition({
-    required this.screenshot,
-    required this.center,
-    required this.onComplete,
+  const _ThemeSegmentedControl({
+    required this.currentMode,
+    required this.onChanged,
   });
 
   @override
-  State<_CircularRevealTransition> createState() =>
-      _CircularRevealTransitionState();
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    return Container(
+      height: 42,
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          _SegmentOption(
+            icon: Icons.light_mode,
+            label: 'Light',
+            selected: currentMode == 'light',
+            onTap: () => onChanged('light'),
+          ),
+          _SegmentOption(
+            icon: Icons.brightness_auto,
+            label: 'System',
+            selected: currentMode == 'system',
+            onTap: () => onChanged('system'),
+          ),
+          _SegmentOption(
+            icon: Icons.dark_mode,
+            label: 'Dark',
+            selected: currentMode == 'dark',
+            onTap: () => onChanged('dark'),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
-class _CircularRevealTransitionState extends State<_CircularRevealTransition>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
+class _SegmentOption extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
 
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    )..forward().then((_) => widget.onComplete());
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  const _SegmentOption({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final maxRadius = _maxDistance(widget.center, size);
+    final cs = Theme.of(context).colorScheme;
 
-    return AnimatedBuilder(
-      animation:
-          CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-      builder: (context, child) {
-        return ClipPath(
-          clipper: _InvertedCircleClipper(
-            center: widget.center,
-            radius: maxRadius * _controller.value,
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeInOut,
+          decoration: BoxDecoration(
+            color: selected ? cs.primary : Colors.transparent,
+            borderRadius: BorderRadius.circular(9),
           ),
-          child: SizedBox.expand(
-            child: Image.memory(
-              widget.screenshot,
-              fit: BoxFit.cover,
-              gaplessPlayback: true,
+          child: Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  size: 16,
+                  color: selected ? cs.onPrimary : cs.onSurfaceVariant,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                    color: selected ? cs.onPrimary : cs.onSurfaceVariant,
+                  ),
+                ),
+              ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
-  }
-
-  double _maxDistance(Offset center, Size size) {
-    final dx = [center.dx, size.width - center.dx]
-        .reduce((a, b) => a > b ? a : b);
-    final dy = [center.dy, size.height - center.dy]
-        .reduce((a, b) => a > b ? a : b);
-    return Offset(dx, dy).distance;
-  }
-}
-
-class _InvertedCircleClipper extends CustomClipper<Path> {
-  final Offset center;
-  final double radius;
-
-  _InvertedCircleClipper({required this.center, required this.radius});
-
-  @override
-  Path getClip(Size size) {
-    return Path()
-      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height))
-      ..addOval(Rect.fromCircle(center: center, radius: radius))
-      ..fillType = PathFillType.evenOdd;
-  }
-
-  @override
-  bool shouldReclip(covariant _InvertedCircleClipper oldClipper) {
-    return oldClipper.radius != radius || oldClipper.center != center;
   }
 }
 

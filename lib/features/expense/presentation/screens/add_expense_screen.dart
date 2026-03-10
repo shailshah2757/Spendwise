@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../category/presentation/providers/category_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
@@ -76,11 +75,11 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
   @override
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
     final categoriesState = ref.watch(categoryNotifierProvider);
     final currencySymbol = ref.watch(currencySymbolProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text(AppStrings.addExpense),
         leading: IconButton(
@@ -102,7 +101,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                     child: Text(
                       'How much?',
                       style: tt.bodyMedium?.copyWith(
-                        color: Colors.grey.shade500,
+                        color: cs.onSurfaceVariant,
                       ),
                     ),
                   ),
@@ -118,7 +117,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                           child: Text(
                             currencySymbol,
                             style: tt.headlineMedium?.copyWith(
-                              color: Colors.grey.shade400,
+                              color: cs.onSurfaceVariant.withValues(alpha: 0.5),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -129,10 +128,10 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                             constraints: const BoxConstraints(minWidth: 80, maxWidth: 280),
                             child: TextFormField(
                               controller: _amountCtrl,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 48,
                                 fontWeight: FontWeight.w700,
-                                color: Colors.black87,
+                                color: cs.onSurface,
                                 height: 1.1,
                               ),
                               decoration: InputDecoration(
@@ -140,7 +139,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                                 hintStyle: TextStyle(
                                   fontSize: 48,
                                   fontWeight: FontWeight.w700,
-                                  color: Colors.grey.shade300,
+                                  color: cs.onSurfaceVariant.withValues(alpha: 0.3),
                                   height: 1.1,
                                 ),
                                 border: InputBorder.none,
@@ -178,7 +177,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                     margin: EdgeInsets.zero,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
-                      side: const BorderSide(color: AppColors.outlineVariant),
+                      side: BorderSide(color: cs.outlineVariant),
                     ),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -189,13 +188,13 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                             icon: Icons.edit_outlined,
                             child: TextFormField(
                               controller: _titleCtrl,
-                              decoration: _cardInputDecoration('Title'),
+                              decoration: _cardInputDecoration('Title', cs),
                               textCapitalization: TextCapitalization.sentences,
                               validator: (v) =>
                                   (v == null || v.trim().isEmpty) ? AppStrings.fieldRequired : null,
                             ),
                           ),
-                          const _CardDivider(),
+                          _CardDivider(cs: cs),
 
                           // Category
                           _FormRow(
@@ -211,9 +210,9 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                               error: (_, __) => const Text('Failed to load'),
                               data: (categories) => DropdownButtonFormField<String>(
                                 initialValue: _selectedCategoryId,
-                                decoration: _cardInputDecoration('Category'),
+                                decoration: _cardInputDecoration('Category', cs),
                                 icon: Icon(Icons.keyboard_arrow_down_rounded,
-                                    color: Colors.grey.shade400),
+                                    color: cs.onSurfaceVariant),
                                 items: categories
                                     .map((c) => DropdownMenuItem(
                                           value: c.id,
@@ -239,7 +238,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                               ),
                             ),
                           ),
-                          const _CardDivider(),
+                          _CardDivider(cs: cs),
 
                           // Date
                           _FormRow(
@@ -259,20 +258,20 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                                       ),
                                     ),
                                     Icon(Icons.chevron_right,
-                                        size: 20, color: Colors.grey.shade400),
+                                        size: 20, color: cs.onSurfaceVariant),
                                   ],
                                 ),
                               ),
                             ),
                           ),
-                          const _CardDivider(),
+                          _CardDivider(cs: cs),
 
                           // Notes
                           _FormRow(
                             icon: Icons.notes_outlined,
                             child: TextFormField(
                               controller: _notesCtrl,
-                              decoration: _cardInputDecoration('Notes (optional)'),
+                              decoration: _cardInputDecoration('Notes (optional)', cs),
                               maxLines: 1,
                               textCapitalization: TextCapitalization.sentences,
                             ),
@@ -298,7 +297,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
             Container(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: cs.surface,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.05),
@@ -344,11 +343,11 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     );
   }
 
-  InputDecoration _cardInputDecoration(String hint) {
+  InputDecoration _cardInputDecoration(String hint, ColorScheme cs) {
     return InputDecoration(
       hintText: hint,
       hintStyle: TextStyle(
-        color: Colors.grey.shade400,
+        color: cs.onSurfaceVariant.withValues(alpha: 0.6),
         fontWeight: FontWeight.w400,
       ),
       border: InputBorder.none,
@@ -372,11 +371,12 @@ class _FormRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: Colors.grey.shade400),
+          Icon(icon, size: 20, color: cs.onSurfaceVariant),
           const SizedBox(width: 14),
           Expanded(child: child),
         ],
@@ -386,7 +386,8 @@ class _FormRow extends StatelessWidget {
 }
 
 class _CardDivider extends StatelessWidget {
-  const _CardDivider();
+  final ColorScheme cs;
+  const _CardDivider({required this.cs});
 
   @override
   Widget build(BuildContext context) {
@@ -395,7 +396,7 @@ class _CardDivider extends StatelessWidget {
       child: Divider(
         height: 1,
         thickness: 0.5,
-        color: AppColors.outlineVariant.withValues(alpha: 0.6),
+        color: cs.outlineVariant.withValues(alpha: 0.6),
       ),
     );
   }

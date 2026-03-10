@@ -81,104 +81,173 @@ class _LockScreenState extends ConsumerState<LockScreen> {
     final lockType = ref.watch(appLockTypeProvider);
     final cs = Theme.of(context).colorScheme;
 
+    final isBiometric = lockType == 'biometric';
+
     return Scaffold(
       body: SafeArea(
-        child: Column(
-          children: [
-            const Spacer(flex: 2),
-            Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [cs.primary, cs.primaryContainer],
-                ),
-                borderRadius: BorderRadius.circular(22),
-              ),
-              child: const Icon(Icons.lock_outline,
-                  color: Colors.white, size: 32),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              lockType == 'biometric' ? 'Authenticate' : 'Enter PIN',
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Unlock to access your expenses',
-              style: TextStyle(
-                fontSize: 14,
-                color: cs.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 32),
+        child: isBiometric
+            ? Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Lock icon
+                    Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [cs.primary, cs.primaryContainer],
+                        ),
+                        borderRadius: BorderRadius.circular(22),
+                      ),
+                      child: const Icon(Icons.lock_outline,
+                          color: Colors.white, size: 32),
+                    ),
+                    const SizedBox(height: 24),
 
-            if (lockType == 'biometric' && _authenticating)
-              const Padding(
-                padding: EdgeInsets.all(24),
-                child: CircularProgressIndicator(),
-              )
-            else if (lockType == 'biometric' && !_authenticating) ...[
-              ElevatedButton.icon(
-                onPressed: _tryBiometric,
-                icon: const Icon(Icons.fingerprint, size: 24),
-                label: const Text('Retry Biometric'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-              ),
-            ] else ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(4, (i) {
-                  final filled = i < _enteredPin.length;
-                  return Container(
-                    width: 16,
-                    height: 16,
-                    margin: const EdgeInsets.symmetric(horizontal: 10),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color:
-                          filled ? cs.primary : Colors.transparent,
-                      border: Border.all(
-                        color: filled
-                            ? cs.primary
-                            : cs.outlineVariant,
-                        width: 2,
+                    // Title
+                    const Text(
+                      'Authenticate',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                  );
-                }),
-              ),
-            ],
+                    const SizedBox(height: 8),
+                    Text(
+                      'Unlock to access your expenses',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: cs.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
 
-            if (_error != null) ...[
-              const SizedBox(height: 16),
-              Text(
-                _error!,
-                style: TextStyle(
-                  color: cs.error,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
+                    if (_authenticating)
+                      const Padding(
+                        padding: EdgeInsets.all(24),
+                        child: CircularProgressIndicator(),
+                      )
+                    else ...[
+                      Icon(Icons.fingerprint, size: 56, color: cs.primary),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Tap to authenticate',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: cs.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: _tryBiometric,
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: Size.zero,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 32, vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+
+                    // Error message
+                    if (_error != null) ...[
+                      const SizedBox(height: 16),
+                      Text(
+                        _error!,
+                        style: TextStyle(
+                          color: cs.error,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
+              )
+            : Column(
+                children: [
+                  const Spacer(flex: 2),
+
+                  // Lock icon
+                  Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [cs.primary, cs.primaryContainer],
+                      ),
+                      borderRadius: BorderRadius.circular(22),
+                    ),
+                    child: const Icon(Icons.lock_outline,
+                        color: Colors.white, size: 32),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Title
+                  const Text(
+                    'Enter PIN',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Unlock to access your expenses',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: cs.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // PIN dots
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(4, (i) {
+                      final filled = i < _enteredPin.length;
+                      return Container(
+                        width: 16,
+                        height: 16,
+                        margin: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: filled ? cs.primary : Colors.transparent,
+                          border: Border.all(
+                            color: filled ? cs.primary : cs.outlineVariant,
+                            width: 2,
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+
+                  // Error message
+                  if (_error != null) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      _error!,
+                      style: TextStyle(
+                        color: cs.error,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+
+                  const Spacer(),
+                  _buildNumberPad(cs),
+                  const SizedBox(height: 32),
+                ],
               ),
-            ],
-
-            const Spacer(),
-
-            if (lockType == 'pin') _buildNumberPad(cs),
-            const SizedBox(height: 32),
-          ],
-        ),
       ),
     );
   }

@@ -36,7 +36,7 @@ class ExpenseListScreen extends ConsumerWidget {
             style: Theme.of(context)
                 .textTheme
                 .bodyMedium
-                ?.copyWith(color: AppColors.error),
+                ?.copyWith(color: Theme.of(context).colorScheme.error),
           ),
         ),
         data: (expenses) => expenses.isEmpty
@@ -78,6 +78,7 @@ class _SlidableExpenseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
     final color = category != null ? Color(category!.colorValue) : AppColors.primary;
     final icon = category != null
         ? IconData(category!.iconCodePoint, fontFamily: 'MaterialIcons')
@@ -89,7 +90,7 @@ class _SlidableExpenseCard extends StatelessWidget {
         children: [
           SlidableAction(
             onPressed: (_) => onDelete(),
-            backgroundColor: AppColors.error,
+            backgroundColor: cs.error,
             foregroundColor: Colors.white,
             icon: Icons.delete_outline,
             label: AppStrings.delete,
@@ -156,6 +157,7 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
 
     return Center(
       child: Column(
@@ -165,7 +167,7 @@ class _EmptyState extends StatelessWidget {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.06),
+              color: cs.primary.withValues(alpha: 0.06),
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -173,13 +175,13 @@ class _EmptyState extends StatelessWidget {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.10),
+                  color: cs.primary.withValues(alpha: 0.10),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.receipt_long_outlined,
                   size: 40,
-                  color: AppColors.primary,
+                  color: cs.primary,
                 ),
               ),
             ),
@@ -187,12 +189,14 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 20),
           Text(
             'No expenses yet',
-            style: tt.titleMedium?.copyWith(color: Colors.grey.shade500),
+            style: tt.titleMedium?.copyWith(color: cs.onSurfaceVariant),
           ),
           const SizedBox(height: 6),
           Text(
             'Tap + to add your first expense',
-            style: tt.bodySmall?.copyWith(color: Colors.grey.shade400),
+            style: tt.bodySmall?.copyWith(
+              color: cs.onSurfaceVariant.withValues(alpha: 0.7),
+            ),
           ),
         ],
       ),
