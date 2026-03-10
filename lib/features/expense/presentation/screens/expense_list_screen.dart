@@ -84,17 +84,29 @@ class _SlidableExpenseCard extends StatelessWidget {
         ? IconData(category!.iconCodePoint, fontFamily: 'MaterialIcons')
         : Icons.receipt_long_outlined;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Slidable(
       endActionPane: ActionPane(
         motion: const BehindMotion(),
+        extentRatio: 0.25,
         children: [
-          SlidableAction(
+          CustomSlidableAction(
             onPressed: (_) => onDelete(),
-            backgroundColor: cs.error,
-            foregroundColor: Colors.white,
-            icon: Icons.delete_outline,
-            label: AppStrings.delete,
+            backgroundColor:
+                isDark ? cs.error.withValues(alpha: 0.85) : cs.errorContainer,
+            foregroundColor: isDark ? cs.onError : cs.onErrorContainer,
             borderRadius: BorderRadius.circular(16),
+            child: const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.delete_outline, size: 22),
+                SizedBox(height: 4),
+                Text('Delete',
+                    style:
+                        TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+              ],
+            ),
           ),
         ],
       ),

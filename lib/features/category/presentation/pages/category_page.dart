@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../providers/category_provider.dart';
 
@@ -79,17 +80,50 @@ class CategoryPage extends ConsumerWidget {
             itemCount: categories.length,
             itemBuilder: (context, index) {
               final cat = categories[index];
-              return Card(
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Color(cat.colorValue),
-                    child: Icon(
-                      IconData(cat.iconCodePoint,
-                          fontFamily: 'MaterialIcons'),
-                      color: Colors.white,
+              final cs = Theme.of(context).colorScheme;
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+              return Slidable(
+                endActionPane: ActionPane(
+                  motion: const BehindMotion(),
+                  extentRatio: 0.25,
+                  children: [
+                    CustomSlidableAction(
+                      onPressed: (_) {
+                        ref
+                            .read(categoryNotifierProvider.notifier)
+                            .delete(cat.id);
+                      },
+                      backgroundColor: isDark
+                          ? cs.error.withValues(alpha: 0.85)
+                          : cs.errorContainer,
+                      foregroundColor:
+                          isDark ? cs.onError : cs.onErrorContainer,
+                      borderRadius: BorderRadius.circular(16),
+                      child: const Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.delete_outline, size: 22),
+                          SizedBox(height: 4),
+                          Text('Delete',
+                              style: TextStyle(
+                                  fontSize: 12, fontWeight: FontWeight.w600)),
+                        ],
+                      ),
                     ),
+                  ],
+                ),
+                child: Card(
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Color(cat.colorValue),
+                      child: Icon(
+                        IconData(cat.iconCodePoint,
+                            fontFamily: 'MaterialIcons'),
+                        color: Colors.white,
+                      ),
+                    ),
+                    title: Text(cat.name),
                   ),
-                  title: Text(cat.name),
                 ),
               );
             },

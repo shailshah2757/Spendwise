@@ -4,6 +4,7 @@ import '../../data/datasources/category_local_datasource.dart';
 import '../../data/repositories/category_repository_impl.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/usecases/add_category.dart';
+import '../../domain/usecases/delete_category.dart';
 import '../../domain/usecases/get_categories.dart';
 
 // --- Infrastructure providers ---
@@ -26,19 +27,26 @@ final addCategoryProvider = Provider(
   (ref) => AddCategory(ref.read(categoryRepositoryProvider)),
 );
 
+final deleteCategoryProvider = Provider(
+  (ref) => DeleteCategory(ref.read(categoryRepositoryProvider)),
+);
+
 // --- State notifier ---
 
 class CategoryNotifier extends StateNotifier<AsyncValue<List<Category>>> {
   final GetCategories _getCategories;
   final AddCategory _addCategory;
+  final DeleteCategory _deleteCategory;
   final CategoryLocalDatasource _datasource;
 
   CategoryNotifier({
     required GetCategories getCategories,
     required AddCategory addCategory,
+    required DeleteCategory deleteCategory,
     required CategoryLocalDatasource datasource,
   })  : _getCategories = getCategories,
         _addCategory = addCategory,
+        _deleteCategory = deleteCategory,
         _datasource = datasource,
         super(const AsyncValue.loading()) {
     _init();
@@ -59,6 +67,11 @@ class CategoryNotifier extends StateNotifier<AsyncValue<List<Category>>> {
     }
   }
 
+  Future<void> delete(String id) async {
+    await _deleteCategory(id);
+    await load();
+  }
+
   Future<void> add(String name, int iconCodePoint, int colorValue) async {
     final category = Category(
       id: const Uuid().v4(),
@@ -76,6 +89,7 @@ final categoryNotifierProvider =
   (ref) => CategoryNotifier(
     getCategories: ref.read(getCategoriesProvider),
     addCategory: ref.read(addCategoryProvider),
+    deleteCategory: ref.read(deleteCategoryProvider),
     datasource: ref.read(categoryDatasourceProvider),
   ),
 );
