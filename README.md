@@ -1,4 +1,4 @@
-# Expense Tracker
+# Spendwise
 
 A personal expense tracking app built with Flutter, following **Clean Architecture** principles. Track your daily spending, organise by category, and view monthly summaries — all stored locally on device with Hive.
 
