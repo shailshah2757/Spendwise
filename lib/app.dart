@@ -24,6 +24,8 @@ class ExpenseTrackerApp extends ConsumerWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: resolveThemeMode(themeMode),
+      themeAnimationDuration: const Duration(milliseconds: 400),
+      themeAnimationCurve: Curves.easeInOut,
       debugShowCheckedModeBanner: false,
       home: const SplashScreen(),
     );
@@ -57,7 +59,10 @@ class _MainScaffoldState extends State<MainScaffold> {
 
     return SecurityGate(
       child: Scaffold(
-        body: IndexedStack(index: _currentIndex, children: _screens),
+        body: IndexedStack(
+          index: _currentIndex,
+          children: _screens.map((s) => RepaintBoundary(child: s)).toList(),
+        ),
         floatingActionButton: FloatingActionButton(
           onPressed: () => Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => const AddExpenseScreen()),

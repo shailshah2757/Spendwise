@@ -16,12 +16,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  void _switchTheme(String newMode) {
-    final current = ref.read(themeModeProvider);
-    if (current == newMode) return;
-    setThemeMode(ref.read(themeModeProvider.notifier), newMode);
-  }
-
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -29,7 +23,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final currencySymbol = ref.watch(currencySymbolProvider);
     final appLockEnabled = ref.watch(appLockEnabledProvider);
     final appLockType = ref.watch(appLockTypeProvider);
-    final themeMode = ref.watch(themeModeProvider);
     // Eagerly resolve biometric availability so it's ready for dialogs
     final biometricAsync = ref.watch(biometricAvailableProvider);
     final biometricAvailable = biometricAsync.valueOrNull ?? false;
@@ -41,70 +34,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           children: [
             // --- Appearance Section ---
             _SectionLabel(label: 'APPEARANCE', cs: cs),
-            _SettingsCard(
-              cs: cs,
-              children: [
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 38,
-                        height: 38,
-                        decoration: BoxDecoration(
-                          color: cs.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(
-                          themeMode == 'dark'
-                              ? Icons.dark_mode
-                              : themeMode == 'light'
-                                  ? Icons.light_mode
-                                  : Icons.brightness_auto,
-                          color: cs.primary,
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Theme',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: cs.onSurface,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              themeMode == 'dark'
-                                  ? 'Dark mode'
-                                  : themeMode == 'light'
-                                      ? 'Light mode'
-                                      : 'System default',
-                              style: TextStyle(
-                                  fontSize: 12, color: cs.onSurfaceVariant),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 14),
-                  child: _ThemeSegmentedControl(
-                    currentMode: themeMode,
-                    onChanged: _switchTheme,
-                  ),
-                ),
-              ],
-            ),
+            const _ThemeCard(),
 
             // --- Budget Section ---
             _SectionLabel(label: 'BUDGET', cs: cs),
@@ -467,21 +397,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'A simple and beautiful expense tracker to help you manage your daily finances. '
+              'Your smart companion for managing daily finances. '
               'Track spending, set budgets, view analytics, and stay on top of your money.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
                 height: 1.5,
                 color: cs.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Built with Flutter',
-              style: TextStyle(
-                fontSize: 12,
-                color: cs.onSurfaceVariant.withValues(alpha: 0.6),
               ),
             ),
           ],
@@ -495,6 +417,84 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+// --- Theme Card (isolated ConsumerWidget to avoid full-screen rebuild) ---
+
+class _ThemeCard extends ConsumerWidget {
+  const _ThemeCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cs = Theme.of(context).colorScheme;
+    final themeMode = ref.watch(themeModeProvider);
+
+    return _SettingsCard(
+      cs: cs,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: cs.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  themeMode == 'dark'
+                      ? Icons.dark_mode
+                      : themeMode == 'light'
+                          ? Icons.light_mode
+                          : Icons.brightness_auto,
+                  color: cs.primary,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Theme',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: cs.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      themeMode == 'dark'
+                          ? 'Dark mode'
+                          : themeMode == 'light'
+                              ? 'Light mode'
+                              : 'System default',
+                      style: TextStyle(
+                          fontSize: 12, color: cs.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 16, right: 16, bottom: 14),
+          child: _ThemeSegmentedControl(
+            currentMode: themeMode,
+            onChanged: (newMode) {
+              if (themeMode == newMode) return;
+              setThemeMode(ref.read(themeModeProvider.notifier), newMode);
+            },
+          ),
+        ),
+      ],
     );
   }
 }

@@ -1,7 +1,7 @@
 class AppStrings {
   AppStrings._();
 
-  static const String appName = 'Expense Tracker';
+  static const String appName = 'Spendwise';
 
   // Navigation
   static const String home = 'Home';
@@ -40,7 +40,7 @@ class AppStrings {
   static const String invalidAmount = 'Enter a valid amount';
 
   // Onboarding
-  static const String welcomeTitle = 'Welcome to Expense Tracker';
+  static const String welcomeTitle = 'Welcome to Spendwise';
   static const String welcomeSubtitle = 'Track your spending, stay in control';
   static const String chooseCurrency = 'Choose Your Currency';
   static const String currencySubtitle = 'Select the currency you use most';

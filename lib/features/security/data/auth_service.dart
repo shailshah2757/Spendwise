@@ -16,7 +16,7 @@ class AuthService {
   Future<bool> authenticateWithBiometrics() async {
     try {
       return await _auth.authenticate(
-        localizedReason: 'Authenticate to access Expense Tracker',
+        localizedReason: 'Authenticate to access Spendwise',
         options: const AuthenticationOptions(
           stickyAuth: true,
           biometricOnly: true,
